@@ -1,9 +1,9 @@
 "use client";
 
-import { Braces, Monitor } from "lucide-react";
 import { copy } from "@/data/interface-copy";
 import type { PortfolioResponse } from "@/types/portfolio";
 import { JsonViewer } from "@/presentation/shared/components/json-viewer";
+import { NotFoundPreview } from "@/presentation/shared/components/not-found-preview";
 import {
   Tabs,
   TabsContent,
@@ -27,16 +27,9 @@ export function ResponsePanel({
     >
       <Tabs defaultValue="preview" className="response-tabs">
         <div className="response-toolbar">
-          <span className="response-title">{copy.response}</span>
           <TabsList className="response-tab-list" aria-label="Response format">
-            <TabsTrigger value="preview">
-              <Monitor size={13} aria-hidden="true" />
-              {copy.preview}
-            </TabsTrigger>
-            <TabsTrigger value="json">
-              <Braces size={13} aria-hidden="true" />
-              {copy.json}
-            </TabsTrigger>
+            <TabsTrigger value="preview">{copy.preview}</TabsTrigger>
+            <TabsTrigger value="json">{copy.json}</TabsTrigger>
           </TabsList>
           <div
             className="response-status"
@@ -58,7 +51,7 @@ export function ResponsePanel({
           className="response-content preview-content"
           tabIndex={0}
         >
-          {children}
+          {response.kind === "not-found" ? <NotFoundPreview /> : children}
         </TabsContent>
         <TabsContent value="json" className="response-content json-content">
           <JsonViewer data={response.data} />

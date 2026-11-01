@@ -49,3 +49,13 @@ export function resolvePortfolioRoute(pathname: string): PortfolioResponse {
     data: { error: "NOT_FOUND", message: copy.notFoundDescription },
   };
 }
+
+export function resolvePortfolioEndpoint(resource: string): {
+  pathname: string;
+  response: PortfolioResponse;
+} {
+  const endpoint = `/api/${resource.replace(/^\/+/, "")}`.replace(/\/+$/, "");
+  const pathname = endpoint === "/api/home" ? "/" : endpoint.slice(4);
+
+  return { pathname, response: resolvePortfolioRoute(pathname) };
+}

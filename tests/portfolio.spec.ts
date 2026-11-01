@@ -6,11 +6,11 @@ import {
 } from "@/lib/portfolio-routes";
 
 const routes = [
-  { path: "/", endpoint: "/api/home", title: home.headline, data: home },
+  { path: "/", endpoint: "/api/home", title: "Home", data: home },
   {
     path: "/projects",
     endpoint: "/api/projects",
-    title: "Built behind the scenes.",
+    title: "Projects",
     data: projects,
   },
   ...projects.map((project) => ({
@@ -19,67 +19,56 @@ const routes = [
     title: project.name,
     data: project,
   })),
-  { path: "/about", endpoint: "/api/about", title: about.title, data: about },
+  { path: "/about", endpoint: "/api/about", title: "About", data: about },
   {
     path: "/contact",
     endpoint: "/api/contact",
-    title: "Start a conversation.",
+    title: "Contact",
     data: contacts,
   },
 ];
 
 async function navigate(page: Page, section: string) {
-  const mobileMenu = page.getByRole("button", { name: "Open navigation" });
-  if (await mobileMenu.isVisible()) {
-    await mobileMenu.click();
-    await page
-      .getByRole("dialog")
-      .getByRole("link", { name: new RegExp(`^${section}`) })
-      .click();
-    await expect(page.getByRole("dialog")).toBeHidden();
-  } else {
-    await page
-      .getByRole("navigation")
-      .getByRole("link", { name: new RegExp(`^${section}`) })
-      .click();
-  }
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: section, exact: true })
+    .click();
   await expect(page).toHaveURL(
     section === "Home" ? "/" : `/${section.toLowerCase()}`,
   );
 }
 
 async function readJson(page: Page) {
-  const source = await page
-    .locator(".json-line > span:last-child")
-    .allTextContents();
-  return JSON.parse(source.join("\n"));
+  return JSON.parse(
+    (await page.locator(".json-line > span:last-child").allTextContents()).join(
+      "\n",
+    ),
+  );
 }
 
 test("local resolver handles routes, missing projects, and section boundaries", () => {
-  for (const route of routes) {
+  for (const route of routes)
     expect(resolvePortfolioRoute(route.path)).toMatchObject({
       endpoint: route.endpoint,
       status: 200,
       data: route.data,
     });
-  }
   expect(resolvePortfolioRoute("/projects/").kind).toBe("projects");
   for (const path of [
     "/missing",
     "/projects/missing",
     "/projects/sp-spaces/nested",
-  ]) {
+  ])
     expect(resolvePortfolioRoute(path)).toMatchObject({
       kind: "not-found",
       status: 404,
     });
-  }
   expect(getActiveSection("/projects/sp-spaces")).toBe("projects");
   expect(getActiveSection("/projects-archive")).toBeNull();
 });
 
 for (const route of routes) {
-  test(`direct URL ${route.path}, Preview/JSON parity, and refresh`, async ({
+  test(`direct URL ${route.path}, minimal Preview, JSON, and refresh`, async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -95,6 +84,12 @@ for (const route of routes) {
     await expect(
       page.getByRole("textbox", { name: "Simulated request URL" }),
     ).toHaveValue(`https://pedrolcs.dev${route.endpoint}`);
+    await expect(
+      page.locator('.request-tabs-strip [aria-current="page"]'),
+    ).toHaveAttribute(
+      "href",
+      route.path.startsWith("/projects/") ? "/projects" : route.path,
+    );
     await expect(page.locator(".http-status")).toHaveText("200 OK");
     await page.getByRole("tab", { name: "JSON", exact: true }).click();
     expect(await readJson(page)).toEqual(route.data);
@@ -112,7 +107,7 @@ for (const route of routes) {
   });
 }
 
-test("navigation preserves the shell, response tab, and browser history", async ({
+test("project navigation preserves the four tabs, shell, response tab, and history", async ({
   page,
 }) => {
   await page.goto("/");
@@ -124,11 +119,15 @@ test("navigation preserves the shell, response tab, and browser history", async 
   await navigate(page, "Projects");
   await page.getByRole("link", { name: "View project: SP Spaces" }).click();
   await expect(page).toHaveURL(/\/projects\/sp-spaces$/);
-  const desktopNav = page.locator(".desktop-sidebar");
-  if (await desktopNav.isVisible())
-    await expect(desktopNav.locator('[aria-current="page"]')).toContainText(
-      "Projects",
-    );
+  await expect(
+    page
+      .getByRole("navigation")
+      .getByRole("link", { name: "Projects", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(4);
+  await expect(
+    page.getByRole("navigation").getByRole("link", { name: "SP Spaces" }),
+  ).toHaveCount(0);
   await page.getByRole("tab", { name: "JSON", exact: true }).click();
   await navigate(page, "About");
   await expect(
@@ -147,7 +146,28 @@ test("navigation preserves the shell, response tab, and browser history", async 
   await expect.poll(() => readJson(page)).toEqual(about);
 });
 
-test("Send resolves locally, request headers work, and contact links stay empty", async ({
+test("four permanent tabs stay available through navigation and refresh", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  for (const section of ["Home", "Projects", "About", "Contact"]) {
+    await expect(navigation.getByRole("link")).toHaveCount(4);
+    await navigate(page, section);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(section);
+    await expect(
+      navigation.getByRole("link", { name: section, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+  }
+  await page.reload();
+  await expect(navigation.getByRole("link")).toHaveCount(4);
+  await expect(navigation.getByRole("button")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Open request", exact: true }),
+  ).toHaveCount(0);
+});
+
+test("Send resolves locally and obsolete controls stay removed", async ({
   page,
 }) => {
   const apiRequests: string[] = [];
@@ -157,7 +177,7 @@ test("Send resolves locally, request headers work, and contact links stay empty"
   });
   await page.goto("/projects");
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator(".request-feedback")).toContainText(
     "Local request completed · #1",
   );
   await page.getByRole("tab", { name: "JSON", exact: true }).click();
@@ -165,14 +185,12 @@ test("Send resolves locally, request headers work, and contact links stay empty"
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.locator(".request-feedback")).toContainText("#2");
   expect(await readJson(page)).toEqual(projects);
-  await page.getByRole("tab", { name: "Headers" }).click();
-  await expect(page.locator(".header-pair")).toHaveText(
-    "Acceptapplication/json",
-  );
-  await navigate(page, "Contact");
-  await page.getByRole("tab", { name: "Preview", exact: true }).click();
-  await expect(page.locator(".contact-empty")).toBeVisible();
-  await expect(page.locator(".contact-list a")).toHaveCount(0);
+  await expect(page.getByRole("tab")).toHaveCount(2);
+  await expect(page.locator("aside, footer, .desktop-sidebar")).toHaveCount(0);
+  await expect(page.locator(".simulated-label")).toHaveCount(1);
+  await expect(
+    page.locator('.window-controls[aria-hidden="true"] > span'),
+  ).toHaveCount(3);
   expect(apiRequests).toEqual([]);
 });
 
@@ -194,9 +212,7 @@ test("system theme, manual toggle, and persisted preference", async ({
 });
 
 for (const path of ["/projects/missing", "/unknown/route"]) {
-  test(`missing resource ${path} retains the client and returns an error response`, async ({
-    page,
-  }) => {
+  test(`missing resource ${path} retains the client`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "This endpoint doesn’t exist.",
@@ -212,7 +228,9 @@ for (const path of ["/projects/missing", "/unknown/route"]) {
   });
 }
 
-test("keyboard tabs and mobile menu escape", async ({ page }) => {
+test("response tabs and primary navigation work with the keyboard", async ({
+  page,
+}) => {
   await page.goto("/projects");
   await page.getByRole("tab", { name: "Preview", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
@@ -220,14 +238,13 @@ test("keyboard tabs and mobile menu escape", async ({ page }) => {
     page.getByRole("tab", { name: "JSON", exact: true }),
   ).toBeFocused();
   expect(await readJson(page)).toEqual(projects);
-  const menu = page.getByRole("button", { name: "Open navigation" });
-  if (await menu.isVisible()) {
-    await menu.click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toBeHidden();
-    await expect(menu).toBeFocused();
-  }
+  const contact = page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Contact", exact: true });
+  await contact.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/contact");
+  await expect.poll(() => readJson(page)).toEqual(contacts);
 });
 
 test("copy returns the exact JSON and reports clipboard errors", async ({
@@ -255,33 +272,43 @@ test("copy returns the exact JSON and reports clipboard errors", async ({
   );
 });
 
-test("320px viewport contains page overflow and scrolls responses internally", async ({
+test("all four tabs fit without horizontal scrolling at narrow widths", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/projects");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  const content = page.locator(".preview-content");
-  expect(
-    await content.evaluate(
-      (element) => element.scrollHeight > element.clientHeight,
-    ),
-  ).toBe(true);
-  await content.evaluate((element) => {
-    element.scrollTop = element.scrollHeight;
-  });
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  for (const width of [320, 390, 640, 767, 768, 820, 1024, 1100, 1280]) {
+    await page.setViewportSize({ width, height: 568 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      await navigation.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth,
+      ),
+    ).toBe(true);
+    for (const section of ["Home", "Projects", "About", "Contact"]) {
+      await expect(
+        navigation.getByRole("link", { name: section, exact: true }),
+      ).toBeInViewport({ ratio: 1 });
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 568 });
+  await navigate(page, "Contact");
   await expect(
-    page.getByRole("link", { name: "View project: Gestão Portuária" }),
-  ).toBeInViewport();
+    navigation.getByRole("link", { name: "Contact", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await navigate(page, "Projects");
   await page.getByRole("tab", { name: "JSON", exact: true }).click();
+  const code = page.locator(".json-code");
   expect(
-    await page
-      .locator(".json-code")
-      .evaluate((element) => element.scrollWidth > element.clientWidth),
+    await code.evaluate(
+      (element) =>
+        element.scrollWidth > element.clientWidth &&
+        element.scrollHeight > element.clientHeight,
+    ),
   ).toBe(true);
   expect(
     await page.evaluate(
