@@ -7,7 +7,7 @@ export const identity = {
 };
 
 export const home: Home = {
-  name: "Pedro",
+  name: "Pedro Lucas",
   role: identity.role,
   headline: "Building what you don’t see.",
   introduction:

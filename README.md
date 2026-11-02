@@ -1,6 +1,6 @@
 # pedrolcs.dev
 
-Portfólio de back-end apresentado como um cliente HTTP. A estrutura permanente usa abas de requisição no topo, barra GET e painel Response. Os previews internos são provisórios: título, identificação e links simples para testar a navegação.
+Portfólio apresentado como um cliente HTTP, com quatro abas superiores, barra GET simulada e painel Response para Preview e JSON.
 
 ## Executar
 
@@ -33,9 +33,9 @@ As URLs reais são `/`, `/projects`, `/projects/sp-spaces`, `/projects/gestao-po
 
 Preview e JSON leem os mesmos dados TypeScript locais. O prefixo `https://pedrolcs.dev/api/` é fixo e o trecho final é editável. Send resolve localmente os nomes de páginas e projetos existentes; caminhos desconhecidos retornam 404 simulado. Não há fetch de conteúdo, medição de latência, carregamento artificial ou formulário de contato. O tráfego normal de navegação e recursos do Next.js continua existindo.
 
-A navegação superior tem exatamente quatro abas permanentes: Home, Projects, About e Contact. Todas aparecem simultaneamente, inclusive no mobile, sem +, fechamento ou rolagem lateral. Os detalhes são acessados pela lista em Projects; a aba Projects continua selecionada sem criar uma aba adicional. A seleção acompanha a URL, inclusive em acesso direto, refresh e histórico. Os três círculos da janela são apenas decorativos.
+As quatro abas Home, Projects, About e Contact ficam no topo. Em telas menores, o menu acessível usa Sheet do Radix. Os detalhes são acessados pela lista em Projects; a aba Projects continua selecionada sem criar uma aba adicional. A seleção acompanha a URL, inclusive em acesso direto, refresh e histórico. Os três círculos da janela são apenas decorativos.
 
-Os previews são Server Components inseridos no shell interativo persistente. A aba de resposta permanece selecionada durante a navegação. O JSON tem indentação, destaque de sintaxe seguro por nós de texto, cópia e rolagem interna. Rotas inválidas exibem uma resposta simulada 404 dentro do client.
+Os previews das demais rotas são Server Components inseridos no shell interativo persistente. A aba de resposta permanece selecionada durante a navegação. O JSON tem indentação, destaque de sintaxe seguro por nós de texto, cópia e rolagem interna. Rotas inválidas exibem uma resposta 404 com FuzzyText e botão de retorno à Home.
 
 ## Personalizar
 
@@ -55,8 +55,8 @@ npx playwright install chromium
 npm test
 ```
 
-Playwright inicia seu próprio servidor de produção na porta 3100, sem reutilizar o servidor de desenvolvimento, e cobre desktop, mobile e tablet: resolução local, URLs diretas, refresh, navegação/histórico, persistência do shell, Preview/JSON, Send, quatro abas permanentes sempre visíveis, navegação para detalhes dentro de Projects, temas, teclado, cópia do JSON, erros de clipboard, 320 px e 404. Artefatos de falhas ficam em `test-results/` (ignorado pelo Git).
+Playwright inicia seu próprio servidor de produção na porta 3100 e cobre desktop, mobile e tablet: resolução local, URLs diretas, refresh, navegação/histórico, persistência do shell, Preview/JSON, Send, navegação para detalhes dentro de Projects, temas, teclado, cópia do JSON, erros de clipboard, 320 px e 404. Artefatos de falhas ficam em `test-results/` (ignorado pelo Git).
 
 ## Próximas etapas
 
-Cada módulo pode evoluir sem alterar a estrutura do client. Layouts definitivos, imagens, diagramas e animações ficam para etapas futuras. Não foi realizado deploy.
+Os previews continuam enxutos; layouts definitivos ficam para etapas futuras. Não foi realizado deploy.
