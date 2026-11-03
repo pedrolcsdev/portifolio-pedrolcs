@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { cn } from "cn";
 import { copy } from "@/data/interface-copy";
 import { portfolioRoutes } from "@/lib/portfolio-routes";
-import { cn } from "@/lib/utils";
 import type { Section } from "@/types/portfolio";
 
 export function RequestTabs({ section }: { section: Section | null }) {

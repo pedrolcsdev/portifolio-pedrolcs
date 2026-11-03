@@ -43,7 +43,6 @@ export function ResponsePanel({
               <span className="status-dot" />
               {response.status} {response.statusText}
             </span>
-            <span className="simulated-label">{copy.simulated}</span>
           </div>
         </div>
         <TabsContent

@@ -6,7 +6,7 @@ import {
 } from "@/lib/portfolio-routes";
 
 const routes = [
-  { path: "/", endpoint: "/api/home", title: "Home", data: home },
+  { path: "/", endpoint: "/api/home", title: `${home.name}.`, data: home },
   {
     path: "/projects",
     endpoint: "/api/projects",
@@ -154,7 +154,9 @@ test("four permanent tabs stay available through navigation and refresh", async 
   for (const section of ["Home", "Projects", "About", "Contact"]) {
     await expect(navigation.getByRole("link")).toHaveCount(4);
     await navigate(page, section);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(section);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      section === "Home" ? `${home.name}.` : section,
+    );
     await expect(
       navigation.getByRole("link", { name: section, exact: true }),
     ).toHaveAttribute("aria-current", "page");
