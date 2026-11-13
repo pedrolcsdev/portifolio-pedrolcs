@@ -72,7 +72,6 @@ export default function LanguagePage() {
             deletingSpeed={20}
             deleteMode="select"
             typeEffect="blur"
-            mistakes={0.2}
             cursorStyle="bar"
             cursorGlide
             showCursor
@@ -94,8 +93,11 @@ export default function LanguagePage() {
               <span className="language-index" aria-hidden="true">0{index + 1}</span>
               <Image className="language-flag" src={language.flag} alt="" aria-hidden="true" draggable={false} width={44} height={31} loading="eager" />
               <span className="language-label">{language.label}</span>
-              <span className="language-code" aria-hidden="true">{language.code === "pt-BR" ? "PT-BR" : "EN"}</span>
-              <span className="language-arrow" aria-hidden="true">↗︎</span>
+              <span className="language-arrow" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 21 21 3M8 3h13v13" />
+                </svg>
+              </span>
             </button>
           ))}
         </div>

@@ -59,7 +59,8 @@ button {
 }
 
 .language-choice {
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.5ch 44px minmax(0, 1fr) 32px;
   min-width: 0;
   align-items: center;
   gap: 14px;
@@ -67,17 +68,19 @@ button {
   border: 0;
   border-bottom: 1px solid rgb(255 255 255 / 16%);
   background: transparent;
-  color: #f4f4f5;
+  color: #d6d8dc;
   text-align: left;
   cursor: pointer;
   animation: intro-fade-in 360ms ease-out both;
   animation-delay: var(--enter-delay, 0ms);
-  transition: border-color 180ms ease, color 180ms ease;
+  transition: border-color 240ms ease, color 240ms ease;
 }
 
 .language-choice:hover,
+.language-choice:focus-visible,
 .language-choice--selected {
   border-color: rgb(242 240 234 / 62%);
+  color: #f4f4f5;
 }
 
 .language-choice:focus-visible {
@@ -85,8 +88,7 @@ button {
   outline-offset: 5px;
 }
 
-.language-index,
-.language-code {
+.language-index {
   color: #7f8590;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
@@ -100,27 +102,39 @@ button {
   flex: 0 0 auto;
   border-radius: 2px;
   object-fit: contain;
+  transition: filter 240ms ease;
+}
+
+.language-choice:hover .language-flag,
+.language-choice:focus-visible .language-flag,
+.language-choice--selected .language-flag {
+  filter: brightness(1.06);
 }
 
 .language-label {
+  min-width: 0;
+  overflow: hidden;
   font-size: clamp(16px, 1.8vw, 20px);
   font-weight: 500;
-}
-
-.language-code {
-  margin-left: auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .language-arrow {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  justify-self: end;
   color: #9297a1;
-  font-size: 18px;
-  transition: color 180ms ease, transform 180ms ease;
+  transition: color 240ms ease, transform 240ms ease;
 }
 
 .language-choice:hover .language-arrow,
+.language-choice:focus-visible .language-arrow,
 .language-choice--selected .language-arrow {
   color: #f2f0ea;
-  transform: translate(2px, -2px);
+  transform: translateX(3px);
 }
 
 @keyframes intro-fade-in {
@@ -139,6 +153,7 @@ button {
   }
 
   .language-choice {
+    grid-template-columns: 2.5ch 40px minmax(0, 1fr) 32px;
     gap: 12px;
     padding: 16px 0;
   }
