@@ -114,6 +114,8 @@ button {
 .language-label {
   min-width: 0;
   overflow: hidden;
+  background: rgb(12 13 16 / 88%);
+  box-shadow: 0 0 14px 9px rgb(12 13 16 / 88%);
   font-size: clamp(16px, 1.8vw, 20px);
   font-weight: 500;
   text-overflow: ellipsis;
@@ -126,6 +128,8 @@ button {
   height: 32px;
   place-items: center;
   justify-self: end;
+  background: rgb(12 13 16 / 88%);
+  box-shadow: 0 0 14px 9px rgb(12 13 16 / 88%);
   color: #9297a1;
   transition: color 240ms ease, transform 240ms ease;
 }
